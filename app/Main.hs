@@ -45,10 +45,7 @@ downloadRecentTorrents = do torrentURLs <- mostRecentTorrents
                                             request <- parseRequest url
                                             response <- httpLbs request manager
 
-                                            homeDir <- getHomeDirectory
-                                            let downloadsDir = homeDir </> "Downloads"
-                                                fileName = takeFileName x  -- replace with the actual file name
-                                                filePath = downloadsDir </> fileName
+                                            let filePath = "/home/chapman/Downloads" </> (takeFileName x)
 
                                             writeFile filePath $ unpack (responseBody response))
                                   recent
