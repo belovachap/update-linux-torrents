@@ -60,7 +60,7 @@ downloadRecentTorrents = do
   let recent = take 25 $ filter (\x -> ".torrent" `isSuffixOf` x) (fromJust torrentURLs)
   mapM_
     ( \x -> do
-        let url = "https://distrowatch.com/" ++ x -- replace with the actual URL
+        let url = "https://distrowatch.com/" ++ x
         manager <- newManager addUserAgent
 
         request <- parseRequest url
