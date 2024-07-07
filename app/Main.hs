@@ -3,22 +3,24 @@
 
 module Main (main) where
 
-import Lib
-
-import Network.HTTP.Client
-import Network.HTTP.Client.TLS (tlsManagerSettings)
-import System.Directory (getHomeDirectory)
-import System.FilePath ((</>), takeFileName)
+import Data.ByteString.Lazy.Char8 (unpack)
+import Data.Default (def)
 import Data.List (isSuffixOf)
 import Data.Maybe (fromJust)
-import Data.Default (def)
-import System.Directory
-import System.FilePattern.Directory
-import Text.HTML.Scalpel
-import qualified Network.HTTP.Client as HTTP
-import qualified Network.HTTP.Client.TLS as HTTP
-import qualified Network.HTTP.Types.Header as HTTP
-import Data.ByteString.Lazy.Char8 (unpack)
+import Network.HTTP.Client (
+    ManagerSettings,
+    managerModifyRequest,
+    httpLbs,
+    newManager,
+    parseRequest,
+    responseBody,
+    requestHeaders)
+import Network.HTTP.Client.TLS (tlsManagerSettings)
+import Network.HTTP.Types.Header (hUserAgent)
+import System.Directory (removeFile)
+import System.FilePath ((</>), takeFileName)
+import System.FilePattern.Directory (getDirectoryFiles)
+import Text.HTML.Scalpel ((@:), Scraper, URL, attr, chroots, hasClass, manager, scrapeURLWithConfig)
 
 cleanAddedTorrents :: IO ()
 cleanAddedTorrents = do alreadyAddedFiles <- getDirectoryFiles "/home/chapman/Downloads" ["*.added"]
@@ -26,13 +28,13 @@ cleanAddedTorrents = do alreadyAddedFiles <- getDirectoryFiles "/home/chapman/Do
 
 -- Create a new manager settings based on the default TLS manager that updates
 -- the request headers to include a custom user agent.
-managerSettings :: HTTP.ManagerSettings
-managerSettings = HTTP.tlsManagerSettings {
-  HTTP.managerModifyRequest = \req -> do
-    req' <- HTTP.managerModifyRequest HTTP.tlsManagerSettings req
+managerSettings :: ManagerSettings
+managerSettings = tlsManagerSettings {
+  managerModifyRequest = \req -> do
+    req' <- managerModifyRequest tlsManagerSettings req
     return $ req' {
-      HTTP.requestHeaders = (HTTP.hUserAgent, "update-linux-torrents")
-                          : HTTP.requestHeaders req'
+      requestHeaders = (hUserAgent, "update-linux-torrents")
+                          : requestHeaders req'
     }
 }
 
@@ -51,7 +53,7 @@ downloadRecentTorrents = do torrentURLs <- mostRecentTorrents
                                   recent
 
 mostRecentTorrents :: IO (Maybe [URL])
-mostRecentTorrents = do manager <- Just <$> HTTP.newManager managerSettings
+mostRecentTorrents = do manager <- Just <$> newManager managerSettings
                         scrapeURLWithConfig (def { manager }) "https://distrowatch.com/dwres.php?resource=bittorrent" torrentURLs
     where
         torrentURLs :: Scraper String [URL]
