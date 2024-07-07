@@ -21,15 +21,15 @@ description:         Please see the README on GitHub at <https://github.com/gith
 
 dependencies:
 - base >= 4.7 && < 5
+- bytestring
+- data-default
 - directory
+- filepath
 - filepattern
-- scalpel
-- http-types
 - http-client
 - http-client-tls
-- data-default
-- filepath
-- bytestring
+- http-types
+- scalpel
 
 ghc-options:
 - -Wall
