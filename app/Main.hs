@@ -60,23 +60,23 @@ mostRecentTorrents = do
       url <- attr "href" "a"
       return url
 
+downloadDistroWatchTorrent :: URL -> IO ()
+downloadDistroWatchTorrent torrentFile = do
+  let url = distroWatch </> torrentFile
+  manager <- newManager addUserAgent
+
+  request <- parseRequest url
+  response <- httpLbs request manager
+
+  let filePath = downloads </> (takeFileName torrentFile)
+
+  writeFile filePath $ unpack (responseBody response)
+
 downloadRecentTorrents :: IO ()
 downloadRecentTorrents = do
   torrentURLs <- mostRecentTorrents
   let recent = take 25 $ filter (\x -> ".torrent" `isSuffixOf` x) (fromJust torrentURLs)
-  mapM_
-    ( \x -> do
-        let url = distroWatch </> x
-        manager <- newManager addUserAgent
-
-        request <- parseRequest url
-        response <- httpLbs request manager
-
-        let filePath = downloads </> (takeFileName x)
-
-        writeFile filePath $ unpack (responseBody response)
-    )
-    recent
+  mapM_ downloadDistroWatchTorrent recent
 
 main :: IO ()
 main = do
